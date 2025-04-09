@@ -17,6 +17,7 @@ import AccountStep from "@/components/form-steps/account-step"
 import ReviewStep from "@/components/form-steps/review-step"
 import { Check, ChevronRight } from "lucide-react"
 import FormProgress from "@/components/form-progress"
+import { useFormDataStore } from "@/lib/store"
 
 const MultiStepForm = () => {
     const [currentStep, setCurrentStep] = useState(0)
@@ -90,11 +91,12 @@ const MultiStepForm = () => {
         const result = await form.trigger(fields as any)
     
         if (result) {
-          if (currentStep < steps.length - 1) {
-            setCurrentStep((prev) => prev + 1)
-          }
+            useFormDataStore.getState().setFromData(stepValues);
+            if (currentStep < steps.length - 1) {
+                setCurrentStep((prev) => prev + 1)
+            }
         }
-      }
+    }
     
       // Handle previous step
       const handlePrevious = () => {
@@ -105,7 +107,7 @@ const MultiStepForm = () => {
 
       const onSubmit = async (data: FormValues) => {
         setIsSubmitting(true)
-    
+        useFormDataStore.getState().setFromData(data);
         // Simulate API call
         await new Promise((resolve) => setTimeout(resolve, 5000))
     
@@ -146,6 +148,7 @@ const MultiStepForm = () => {
                     form.reset()
                     setCurrentStep(0)
                     setIsSubmitted(false)
+                    localStorage.removeItem("form-data-storage")
                   }}
                 >
                   Start Over
@@ -171,15 +174,17 @@ const MultiStepForm = () => {
                             Previous
                         </Button>
 
-                        {currentStep < steps.length - 1 ? (
+                        {currentStep < steps.length - 1 &&
                             <Button type="button" onClick={handleNext}>
-                            Next <ChevronRight className="ml-2 h-4 w-4" />
+                                Next <ChevronRight className="ml-2 h-4 w-4" />
                             </Button>
-                        ) : (
+                        }
+
+                        {currentStep === steps.length - 1 &&
                             <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? "Submitting..." : "Submit"}
+                                {isSubmitting ? "Submitting..." : "Submit"}
                             </Button>
-                        )}
+                        }
                         </div>
                     </CardContent>
                 </Card>
